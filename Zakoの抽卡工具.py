@@ -7,6 +7,7 @@ import sys
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import shutil
+import webbrowser
 
 # 使用浅色模式
 ctk.set_appearance_mode("light")
@@ -385,12 +386,12 @@ class GachaApp(ctk.CTk):
         # 获取数据目录
         if getattr(sys, 'frozen', False):
             # 打包后：内置数据在临时目录，用户数据在exe所在目录
-            self.base_dir = sys._MEIPASS
+            self.base_dir = os.path.join(sys._MEIPASS, "D站词条")
             self.exe_dir = os.path.dirname(sys.executable)
         else:
-            # 开发环境：都在脚本所在目录
-            self.base_dir = os.path.dirname(os.path.abspath(__file__))
-            self.exe_dir = self.base_dir
+            # 开发环境：都在脚本所在目录的D站词条下
+            self.base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "D站词条")
+            self.exe_dir = os.path.dirname(os.path.abspath(__file__))
         
         # 用户导入数据目录（exe所在目录下，确保持久化）
         self.input_dir = os.path.join(self.exe_dir, "input")
@@ -401,9 +402,13 @@ class GachaApp(ctk.CTk):
                 os.makedirs(d)
         
         # 设置窗口图标
-        icon_path = os.path.join(self.base_dir, "icon.ico")
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, "icon.ico")
+        else:
+            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
         if os.path.exists(icon_path):
             self.iconbitmap(icon_path)
+        self.icon_path = icon_path  # 保存图标路径供弹窗使用
         
         # 获取类别数据
         self.category_data = self.get_categories_with_count()
@@ -472,6 +477,21 @@ class GachaApp(ctk.CTk):
         # 主容器
         main = ctk.CTkFrame(self, fg_color="transparent")
         main.pack(fill="both", expand=True, padx=50, pady=40)
+        
+        # GitHub 图标（左上角）
+        github_btn = ctk.CTkButton(
+            self,
+            text="🐙",
+            width=28,
+            height=28,
+            font=ctk.CTkFont(size=14),
+            fg_color="transparent",
+            hover_color="#e2e8f0",
+            text_color="#718096",
+            corner_radius=6,
+            command=lambda: webbrowser.open("https://github.com/xiaoshengyvlin/ZaKo-Random-Roll")
+        )
+        github_btn.place(x=12, y=12)
         
         # 标题（混合字体）
         title_frame = ctk.CTkFrame(main, fg_color="transparent")
@@ -863,9 +883,8 @@ class GachaApp(ctk.CTk):
         dialog.grab_set()
         
         # 设置对话框图标
-        icon_path = os.path.join(self.base_dir, "icon.ico")
-        if os.path.exists(icon_path):
-            dialog.after(200, lambda: dialog.iconbitmap(icon_path))
+        if os.path.exists(self.icon_path):
+            dialog.after(200, lambda: dialog.iconbitmap(self.icon_path))
         
         # 类别名输入
         ctk.CTkLabel(
@@ -964,9 +983,8 @@ class GachaApp(ctk.CTk):
         dialog.grab_set()
         
         # 设置对话框图标
-        icon_path = os.path.join(self.base_dir, "icon.ico")
-        if os.path.exists(icon_path):
-            dialog.after(200, lambda: dialog.iconbitmap(icon_path))
+        if os.path.exists(self.icon_path):
+            dialog.after(200, lambda: dialog.iconbitmap(self.icon_path))
         
         # 画师串名称
         ctk.CTkLabel(
